@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import PropTypes from 'prop-types';
 import {
   ResponsiveContainer,
@@ -95,22 +95,11 @@ PipelineTooltip.defaultProps = {
 };
 
 const App = () => {
-  const [isPopulated, setIsPopulated] = useState(false);
-
-  const currentDeals = isPopulated ? deals : [];
-  const currentRevenue = isPopulated ? revenueByMonth : [];
-  const currentCompanies = isPopulated ? companies : [];
+  const currentDeals = deals;
+  const currentRevenue = revenueByMonth;
+  const currentCompanies = companies;
 
   const metrics = useMemo(() => {
-    if (!isPopulated) {
-      return {
-        totalRevenue: { value: '$0', trend: [] },
-        activeDeals: { value: '0', trend: [] },
-        winRate: { value: '0%', trend: [] },
-        monthlyGrowth: { value: '0%', trend: [] },
-      };
-    }
-
     const wonDeals = currentDeals.filter((deal) => deal.stage === 'Won');
     const lostDeals = currentDeals.filter((deal) => deal.stage === 'Lost');
     const activeDealsCount = currentDeals.filter(
@@ -179,7 +168,7 @@ const App = () => {
         trend: monthlyGrowthTrend,
       },
     };
-  }, [currentDeals, currentRevenue, isPopulated]);
+  }, [currentDeals, currentRevenue]);
 
   const kpiCards = useMemo(() => [
     {
@@ -225,11 +214,7 @@ const App = () => {
   ], [metrics]);
 
   const pipelineData = useMemo(() => {
-    if (!isPopulated) {
-      return [];
-    }
-
-    return pipelineStages.map((stage) => {
+    const stageData = pipelineStages.map((stage) => {
       const dealsInStage = currentDeals.filter((deal) => deal.stage === stage);
       const totalValue = dealsInStage.reduce((sum, deal) => sum + deal.value, 0);
       return {
@@ -238,23 +223,18 @@ const App = () => {
         count: dealsInStage.length,
       };
     });
-  }, [currentDeals, isPopulated]);
+
+    const hasPipeline = stageData.some((item) => item.value > 0 || item.count > 0);
+    return hasPipeline ? stageData : [];
+  }, [currentDeals]);
 
   const recentDeals = useMemo(() => {
-    if (!isPopulated) {
-      return [];
-    }
-
     return [...currentDeals]
       .sort((a, b) => new Date(b.closeDate) - new Date(a.closeDate))
       .slice(0, 10);
-  }, [currentDeals, isPopulated]);
+  }, [currentDeals]);
 
   const topCompanies = useMemo(() => {
-    if (!isPopulated) {
-      return [];
-    }
-
     const aggregates = currentDeals.reduce((acc, deal) => {
       if (!acc.has(deal.company)) {
         acc.set(deal.company, { totalValue: 0, dealCount: 0 });
@@ -276,10 +256,7 @@ const App = () => {
       }))
       .sort((a, b) => b.totalValue - a.totalValue)
       .slice(0, 10);
-  }, [currentCompanies, currentDeals, isPopulated]);
-
-  const handlePopulate = () => setIsPopulated(true);
-  const handleReset = () => setIsPopulated(false);
+  }, [currentCompanies, currentDeals]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-100 via-background to-white pb-16">
@@ -298,28 +275,8 @@ const App = () => {
               A crisp, zero-lift CRM showcase for DemoForge
             </h1>
             <p className="mt-4 max-w-2xl text-base text-slate-300">
-              Start with a clean slate, then ignite the dashboard with a single click.
-              Perfect for illustrating how your agent workflows can breathe life into raw data.
+              Explore a polished single-screen CRM demo that launches blank and is primed for your DemoForge agents to bring the story to life.
             </p>
-          </div>
-          <div className="flex flex-wrap items-center gap-4">
-            <button
-              type="button"
-              onClick={handleReset}
-              className="rounded-full border border-white/30 px-5 py-2 text-sm font-medium text-white transition hover:border-white hover:bg-white/10 disabled:cursor-not-allowed disabled:border-white/10 disabled:text-white/40"
-              disabled={!isPopulated}
-            >
-              Reset to Empty
-            </button>
-            <button
-              type="button"
-              onClick={handlePopulate}
-              className="flex items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-semibold text-slate-900 shadow-lg transition hover:shadow-xl disabled:cursor-not-allowed disabled:bg-white/70 disabled:text-slate-500"
-              disabled={isPopulated}
-            >
-              Populate Dashboard
-              <ArrowUpRight className="h-4 w-4" strokeWidth={1.6} />
-            </button>
           </div>
         </div>
       </header>
