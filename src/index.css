@@ -1,0 +1,19 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  @apply bg-background text-slate-900;
+}
+
+.kpi-card {
+  @apply rounded-xl bg-white p-6 shadow-card transition-transform duration-200 hover:-translate-y-1 hover:shadow-lg;
+}
+
+.section-card {
+  @apply rounded-2xl bg-white p-6 shadow-card;
+}
+
+.empty-state {
+  @apply flex h-full min-h-[220px] flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-slate-200 bg-slate-50 text-center text-slate-500;
+}
